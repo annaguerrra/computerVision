@@ -29,5 +29,7 @@ for i in range(100):
 
     w = w - lr * weight
     b = b - lr * bias
-    print(sigmoid(S(x, w, b)), error)
+
+    output = sigmoid(S(x, w, b))    
+    print(f"Época: {i} | Saída: {output} | Erro: {error}")
     pass
