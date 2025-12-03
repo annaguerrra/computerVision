@@ -1,17 +1,44 @@
-from draw_network import Network
-from sklearn.model_selection import train_test_split
-import numpy as np
+from typing import List
+from Kernel import Kernel, init
 
-train_val_images = './DATASET/train_images.npy'
-train_val_labels = './DATASET/train_labels.npy' 
+def filter_function(image: List[List[int]], kernel: List[List[int]]):
+    stride = (1,1)
+    filtered = []
+    
+    lenX = len(image)
+    lenY = len(image[0])
 
-x = np.load(train_val_images)
-y = np.load(train_val_labels)
+    for linha in range(0, lenX, stride[0]):
+        new_line = []
+        for coluna in range(0, lenY , stride[1]):
+            totalWeight = 0
+            finalPixel = 0
 
-x = x.reshape(x.shape[0], -1)
+            for xPixel, xKernel in zip(range(-1, 2, 1), range(0, len(kernel), 1)):
+                for yPixel, yKernel in zip(range(-1, 2, 1), range(0, len(kernel), 1)):
+                    
+                    if(linha + xPixel > lenX - 1 or coluna + yPixel > lenX - 1):
+                        pixelOG = 0
+                    else:
+                        pixelOG = image[linha + xPixel][coluna + yPixel]
+                    
+                    finalPixel += pixelOG * kernel[xKernel][yKernel]
+                    totalWeight += kernel[xKernel][yKernel]
+            
+            if totalWeight < 1:
+                totalWeight = 1
+            finalPixel = finalPixel / totalWeight
 
+            if finalPixel > 255:
+                finalPixel = 255
+            if finalPixel < 0:
+                finalPixel = 0
+            
+            new_line.append(finalPixel)
+        filtered.append(new_line)
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.15, random_state=42)
+    return filtered
 
-Net = Network(outputs=10, features=784, lr=0.05, neuron_layers=[16,8], line_limit=28, scaler=255)
-Net.fit(x, y, 1)
+Kernel = Kernel("minion.png", filter_function)
+
+init()
